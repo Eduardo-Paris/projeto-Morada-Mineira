@@ -57,7 +57,7 @@ export default function TaskDetailPage() {
   }
 
   async function handleEvidenceCapture(evidenceData) {
-    const result = await addEvidence({ ...evidenceData, captured_by: user?.name });
+    const result = await addEvidence({ ...evidenceData, captured_by: user?.id });
     if (result) {
       toast.success("Evidência enviada com sucesso!");
       setShowCapture(false);

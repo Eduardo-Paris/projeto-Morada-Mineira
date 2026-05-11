@@ -60,6 +60,23 @@ async function insertToSupabase(table, data) {
     return result?.[0] || null;
   } catch (e) {
     console.error("Erro ao inserir:", e);
+    
+    // Tradutor de Erros do Supabase 
+    let mensagemAlerta = `🛑 ERRO AO SALVAR NA TABELA '${table.toUpperCase()}'\n\n`;
+
+    if (e.code === 'PGRST204' || e.code === '42703') {
+      mensagemAlerta += `❌ FALTANDO GAVETA (Coluna):\nO site tentou enviar um dado, mas a coluna não existe no banco.\nDetalhe técnico: ${e.message}`;
+    } else if (e.code === '22P02') {
+      mensagemAlerta += `🔤 TIPO ERRADO (Texto no lugar de ID):\nO site enviou um texto solto para uma gaveta que só aceita código UUID.\nDetalhe técnico: ${e.message}`;
+    } else if (e.code === '23502') {
+      mensagemAlerta += `⚠️ INFORMAÇÃO FALTANDO:\nVocê tentou salvar, mas deixou alguma informação obrigatória em branco.\nDetalhe técnico: ${e.message}`;
+    } else if (e.code === '42501') {
+      mensagemAlerta += `🔒 PORTA TRANCADA (RLS):\nO banco de dados bloqueou o salvamento por falta de permissão.\nDetalhe técnico: ${e.message}`;
+    } else {
+      mensagemAlerta += `🐛 ERRO MISTERIOSO:\nCódigo: ${e.code}\nMensagem: ${e.message}\nDetalhes: ${e.details}`;
+    }
+
+    alert(mensagemAlerta);
     return null;
   }
 }

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator de Código de ZIP</title>
+    <!-- Biblioteca JSZip para ler arquivos zip no navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { color: #2c3e50; }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #219150; }
+        textarea {
+            width: 100%;
+            height: 500px;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #fdfdfd;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Leitor de ZIP para Texto</h1>
+        <p>Selecione um arquivo <b>.zip</b>. O programa irá ler todos os arquivos dentro dele (e de suas subpastas) e gerar um "textão" único com o conteúdo.</p>
+        
+        <div class="controls">
+            <input type="file" id="fileInput" accept=".zip" />
+            <button id="copyBtn">Copiar Tudo</button>
+        </div>
+        
+        <textarea id="output" placeholder="O resultado aparecerá aqui..." readonly></textarea>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const outputArea = document.getElementById('output');
+            outputArea.value = "Lendo o arquivo ZIP, por favor aguarde... (Isso pode levar alguns segundos dependendo do tamanho)";
+
+            const zip = new JSZip();
+            
+            zip.loadAsync(file).then(function(contents) {
+                let finalString = "codigo da pasta\n\n";
+                let promises = [];
+
+                // Lista de extensões comuns de texto/código (para evitar ler imagens como texto)
+                const textExtensions = ['.txt', '.py', '.js', '.html', '.css', '.json', '.md', '.csv', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.go', '.rs', '.ts', '.jsx', '.tsx', '.xml', '.yml', '.yaml', '.sh', '.sql'];
+
+                // Iterar sobre cada arquivo no ZIP
+                Object.keys(contents.files).forEach(function(filename) {
+                    const zipEntry = contents.files[filename];
+                    
+                    // Ignorar pastas
+                    if (!zipEntry.dir) {
+                        // Opcional: verificar se é um arquivo de texto baseado na extensão
+                        const ext = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+                        const isLikelyText = textExtensions.includes('.' + ext) || !filename.includes('.');
+
+                        if (isLikelyText) {
+                            const promise = zipEntry.async("string").then(function(content) {
+                                return `=== Arquivo: ${filename} ===\n${content}\n\n`;
+                            });
+                            promises.push(promise);
+                        } else {
+                            promises.push(Promise.resolve(`=== Arquivo: ${filename} ===\n[Arquivo binário ou não-texto ignorado]\n\n`));
+                        }
+                    }
+                });
+
+                Promise.all(promises).then(function(results) {
+                    finalString += results.join("");
+                    outputArea.value = finalString;
+                });
+
+            }).catch(function(err) {
+                outputArea.value = "Erro ao ler o arquivo ZIP: " + err.message + "\nCertifique-se de que é um arquivo .zip válido.";
+            });
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const outputArea = document.getElementById('output');
+            if (!outputArea.value) {
+                alert("Não há texto para copiar ainda!");
+                return;
+            }
+            outputArea.select();
+            document.execCommand('copy');
+            alert('Texto copiado com sucesso para a área de transferência!');
+        });
+    </script>
+</body>
+</html>
