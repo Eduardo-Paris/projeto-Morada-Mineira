@@ -182,7 +182,7 @@ export default function TaskDetailPage() {
       {/* Actions */}
       <div className="detail-section">
         <h3 className="detail-section-title">⚡ Ações</h3>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: 'flex-start' }}>
           {/* Funcionário pode mudar status */}
           {!isGerente && task.status === "pendente" && (
             <button className="btn btn-primary btn-sm" onClick={() => handleStatusChange("em_andamento")}>

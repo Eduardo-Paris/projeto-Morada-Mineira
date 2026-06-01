@@ -54,14 +54,16 @@ export default function LoginPage() {
       <div className="login-card">
 
         {/* Logo / Marca */}
-        <div className="login-logo-wrap">
-          <div className="login-logo">
-            <span>MM</span>
+        <div className="login-logo-wrap" style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <img src="/images/logo-principal.png" alt="Morada Mineira" style={{ height: 60, width: 'auto' }} />
           </div>
           <h1 className="login-title">{COMPANY.name}</h1>
           <p className="login-subtitle">{COMPANY.description}</p>
         </div>
 
+        {/* Divider visual */}
+        <div style={{ height: 1, background: 'var(--border-color)', marginBottom: 28, opacity: 0.6 }} />
         {/* ── MODO: RECUPERAR SENHA ── */}
         {mode === "reset" ? (
           <div className="animate-fade">
@@ -126,17 +128,24 @@ export default function LoginPage() {
 
             <div className="form-group">
               <label className="form-label" htmlFor="email">E-mail</label>
-              <input
-                id="email"
-                className="input"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                autoFocus
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: '0.95rem', opacity: 0.45, pointerEvents: 'none'
+                }}>📧</span>
+                <input
+                  id="email"
+                  className="input"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  autoFocus
+                  style={{ paddingLeft: 40 }}
+                />
+              </div>
             </div>
 
             <div className="form-group">
@@ -148,23 +157,30 @@ export default function LoginPage() {
                   style={{
                     background: "none", border: "none",
                     fontSize: "0.75rem", color: "var(--color-primary)",
-                    cursor: "pointer", marginLeft: "auto",
+                    cursor: "pointer", marginLeft: "auto", fontWeight: 600
                   }}
                 >
                   {showPass ? "Ocultar" : "Mostrar"}
                 </button>
               </label>
-              <input
-                id="password"
-                className="input"
-                type={showPass ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                minLength={6}
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: '0.95rem', opacity: 0.45, pointerEvents: 'none'
+                }}>🔒</span>
+                <input
+                  id="password"
+                  className="input"
+                  type={showPass ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  minLength={6}
+                  style={{ paddingLeft: 40 }}
+                />
+              </div>
             </div>
 
             {error && (
@@ -197,12 +213,14 @@ export default function LoginPage() {
               style={{
                 backgroundColor: "#fff",
                 color: "#333",
-                border: "1px solid #ddd",
+                border: "1.5px solid #ddd",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
-                marginBottom: 12
+                marginBottom: 12,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                fontWeight: 500
               }}
               onClick={loginWithGoogle}
               disabled={submitting}
@@ -247,10 +265,10 @@ function LoadingScreen() {
   return (
     <div style={{
       display: "flex", alignItems: "center", justifyContent: "center",
-      minHeight: "100dvh", flexDirection: "column", gap: 12,
+      minHeight: "100dvh", flexDirection: "column", gap: 16,
       background: "var(--bg-primary)",
     }}>
-      <div style={{ fontSize: "2.5rem" }}>🏡</div>
+      <img src="/images/logo-simbolo.png" alt="Carregando" style={{ width: 64, height: 64, animation: 'pulse 1.5s infinite' }} />
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Carregando...</p>
     </div>
   );

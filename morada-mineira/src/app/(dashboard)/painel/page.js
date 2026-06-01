@@ -47,45 +47,64 @@ export default function PainelPage() {
   // Evidências recentes pendentes
   const pendingEvidences = evidences.filter((e) => e.status === "pendente").slice(0, 5);
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+
   return (
     <div className="animate-fade">
       <div className="header">
         <div className="header-title">
-          <h1>Olá, {user?.name} 👋</h1>
+          <h1>{greeting}, {user?.name?.split(' ')[0]} 👋</h1>
           <p>{isGerente ? "Visão geral do sistema" : "Suas tarefas de hoje"}</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="stats-grid">
-        <div className="stat-card">
+        <div className="stat-card stat-card--primary">
           <div className="stat-icon">📋</div>
           <div className="stat-number" style={{ color: "var(--text-primary)" }}>{stats.total}</div>
           <div className="stat-label">Total</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card--warning">
           <div className="stat-icon">⏳</div>
           <div className="stat-number" style={{ color: "var(--color-warning)" }}>{stats.pendentes}</div>
           <div className="stat-label">Pendentes</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card--info">
           <div className="stat-icon">🔄</div>
           <div className="stat-number" style={{ color: "var(--color-info)" }}>{stats.emAndamento}</div>
           <div className="stat-label">Em Andamento</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card--warning">
           <div className="stat-icon">📸</div>
           <div className="stat-number" style={{ color: "#FF9800" }}>{stats.aguardando}</div>
           <div className="stat-label">Aguardando</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card--success">
           <div className="stat-icon">✅</div>
           <div className="stat-number" style={{ color: "var(--color-success)" }}>{stats.concluidas}</div>
           <div className="stat-label">Concluídas</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-card--primary">
           <div className="stat-icon">📊</div>
           <div className="stat-number" style={{ color: "var(--color-primary)" }}>{stats.taxaConclusao}%</div>
+          <div style={{ 
+            margin: '8px auto 0', 
+            width: '80%', 
+            height: 4, 
+            background: 'rgba(139,69,19,0.15)', 
+            borderRadius: 4, 
+            overflow: 'hidden' 
+          }}>
+            <div style={{ 
+              height: '100%', 
+              width: `${stats.taxaConclusao}%`, 
+              background: 'var(--color-primary)', 
+              borderRadius: 4,
+              transition: 'width 0.6s ease'
+            }} />
+          </div>
           <div className="stat-label">Taxa de Conclusão</div>
         </div>
       </div>

@@ -61,6 +61,9 @@ export default function CadastroPage() {
           <p className="login-subtitle">Crie sua conta na plataforma</p>
         </div>
 
+        {/* Divider visual */}
+        <div style={{ height: 1, background: 'var(--border-color)', marginBottom: 28, opacity: 0.6 }} />
+
         {success ? (
           <div className="animate-fade">
             <div className="login-success-box">
@@ -82,30 +85,44 @@ export default function CadastroPage() {
           <form onSubmit={handleSignUp} className="login-form animate-fade">
             <div className="form-group">
               <label className="form-label" htmlFor="name">Nome Completo</label>
-              <input
-                id="name"
-                className="input"
-                type="text"
-                placeholder="Ex: João da Silva"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoFocus
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: '0.95rem', opacity: 0.45, pointerEvents: 'none'
+                }}>👤</span>
+                <input
+                  id="name"
+                  className="input"
+                  type="text"
+                  placeholder="Ex: João da Silva"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoFocus
+                  style={{ paddingLeft: 40 }}
+                />
+              </div>
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="email">E-mail</label>
-              <input
-                id="email"
-                className="input"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: '0.95rem', opacity: 0.45, pointerEvents: 'none'
+                }}>📧</span>
+                <input
+                  id="email"
+                  className="input"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  style={{ paddingLeft: 40 }}
+                />
+              </div>
             </div>
 
             <div className="form-group">
@@ -117,23 +134,30 @@ export default function CadastroPage() {
                   style={{
                     background: "none", border: "none",
                     fontSize: "0.75rem", color: "var(--color-primary)",
-                    cursor: "pointer", marginLeft: "auto",
+                    cursor: "pointer", marginLeft: "auto", fontWeight: 600
                   }}
                 >
                   {showPass ? "Ocultar" : "Mostrar"}
                 </button>
               </label>
-              <input
-                id="password"
-                className="input"
-                type={showPass ? "text" : "password"}
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                autoComplete="new-password"
-              />
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: '0.95rem', opacity: 0.45, pointerEvents: 'none'
+                }}>🔒</span>
+                <input
+                  id="password"
+                  className="input"
+                  type={showPass ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  style={{ paddingLeft: 40 }}
+                />
+              </div>
             </div>
 
             {error && (
@@ -166,12 +190,14 @@ export default function CadastroPage() {
               style={{
                 backgroundColor: "#fff",
                 color: "#333",
-                border: "1px solid #ddd",
+                border: "1.5px solid #ddd",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
-                marginBottom: 12
+                marginBottom: 12,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                fontWeight: 500
               }}
               onClick={loginWithGoogle}
               disabled={submitting}

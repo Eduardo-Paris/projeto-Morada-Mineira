@@ -9,7 +9,7 @@ export default function TaskCard({ task, onClick }) {
   const status = getStatusById(task.status);
 
   return (
-    <div className="task-card animate-fade" onClick={() => onClick?.(task)}>
+    <div className={`task-card animate-fade task-card--${task.priority || 'normal'}`} onClick={() => onClick?.(task)}>
       <div className="task-card-header">
         <h3 className="task-card-title">{task.title}</h3>
         <span
@@ -48,8 +48,15 @@ export default function TaskCard({ task, onClick }) {
           📸 {task.evidence_count || 0} evidência(s)
         </span>
         {/* Mostrando o prazo ou Sem Prazo aqui no footer */}
-        <span style={{ fontSize: "0.75rem", color: task.due_date ? "var(--color-danger)" : "var(--text-muted)", fontWeight: task.due_date ? "600" : "normal" }}>
-          {task.due_date ? `Prazo: ${formatDateShort(task.due_date)}` : "Sem prazo final"}
+        <span style={{ 
+          fontSize: "0.75rem", 
+          color: task.due_date ? "var(--color-danger)" : "var(--text-muted)", 
+          fontWeight: task.due_date ? "700" : "normal",
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4
+        }}>
+          {task.due_date ? `⏰ ${formatDateShort(task.due_date)}` : "Sem prazo"}
         </span>
       </div>
     </div>

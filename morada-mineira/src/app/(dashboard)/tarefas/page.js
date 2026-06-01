@@ -59,7 +59,11 @@ export default function TarefasPage() {
       <div className="header">
         <div className="header-title">
           <h1>{isGerente ? "Todas as Tarefas" : "Minhas Tarefas"}</h1>
-          <p>{filtered.length} tarefa(s) encontrada(s)</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <span className="badge" style={{ background: 'rgba(139,69,19,0.1)', color: 'var(--color-primary)', fontWeight: 700 }}>
+              {filtered.length} {filtered.length === 1 ? 'tarefa' : 'tarefas'}
+            </span>
+          </div>
         </div>
         {isGerente && (
           <div className="header-actions">
@@ -71,16 +75,21 @@ export default function TarefasPage() {
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <span style={{
+          position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+          fontSize: '1rem', pointerEvents: 'none', opacity: 0.5, zIndex: 1
+        }}>🔍</span>
         <input
           className="input"
-          placeholder="🔍 Buscar tarefas..."
+          placeholder="Buscar tarefas..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          style={{ paddingLeft: 40 }}
         />
       </div>
 
-      {/* Filters */}
+      {/* Filters — unified single scrollable row */}
       <div className="task-filters">
         <button
           className={`filter-chip ${filterStatus === "todos" ? "active" : ""}`}
@@ -97,9 +106,10 @@ export default function TarefasPage() {
             {s.icon} {s.label}
           </button>
         ))}
-      </div>
 
-      <div className="task-filters" style={{ marginTop: 8 }}>
+        {/* Separador visual */}
+        <span style={{ width: 1, background: "var(--border-color)", alignSelf: "stretch", flexShrink: 0, margin: "0 4px" }} />
+
         <button
           className={`filter-chip ${filterCategory === "todos" ? "active" : ""}`}
           onClick={() => setFilterCategory("todos")}

@@ -7,9 +7,27 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const AuthContext = createContext(null);
+
+// Helpers para Local Storage (Fallback)
+function getFromLocal(key) {
+  if (typeof window === "undefined") return null;
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setToLocal(key, value) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);   // profile do banco
@@ -21,6 +39,10 @@ export function AuthProvider({ children }) {
   // ── Carrega profile completo do banco ─────────────────────
   const loadProfile = useCallback(async (authUser) => {
     if (!authUser) { setUser(null); return; }
+    if (!isSupabaseConfigured) {
+      setUser(authUser);
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -38,6 +60,15 @@ export function AuthProvider({ children }) {
 
   // ── Carrega lista de usuários (para o gerente atribuir tarefas) ──
   const loadUsers = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [
+        { id: "gerente-1", name: "Gerente", role: "gerente", avatar_emoji: "👔", email: "gerente@teste.com", active: true },
+        { id: "func-1", name: "João Silva", role: "funcionario", avatar_emoji: "👷", email: "joao@teste.com", active: true },
+        { id: "func-2", name: "Maria Santos", role: "funcionario", avatar_emoji: "👷", email: "maria@teste.com", active: true },
+      ];
+      setUsers(localUsers.filter(u => u.active));
+      return;
+    }
     try {
       const { data } = await supabase
         .from("profiles")
@@ -52,6 +83,16 @@ export function AuthProvider({ children }) {
 
   // ── Inicialização: escuta mudanças de sessão ───────────────
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      const localSession = getFromLocal("morada_session");
+      if (localSession) {
+        setSession(localSession);
+        setUser(localSession.user);
+      }
+      setLoading(false);
+      return;
+    }
+
     // Pega sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -78,6 +119,37 @@ export function AuthProvider({ children }) {
   const signUp = useCallback(async (name, email, password) => {
     setError(null);
     setLoading(true);
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [
+        { id: "gerente-1", name: "Gerente", role: "gerente", avatar_emoji: "👔", email: "gerente@teste.com", active: true },
+        { id: "func-1", name: "João Silva", role: "funcionario", avatar_emoji: "👷", email: "joao@teste.com", active: true },
+        { id: "func-2", name: "Maria Santos", role: "funcionario", avatar_emoji: "👷", email: "maria@teste.com", active: true },
+      ];
+      const emailLower = email.trim().toLowerCase();
+      if (localUsers.some(u => u.email === emailLower)) {
+        setError("Este e-mail já está cadastrado.");
+        setLoading(false);
+        return { success: false, error: "Este e-mail já está cadastrado." };
+      }
+      const id = crypto.randomUUID();
+      const newProfile = {
+        id,
+        name,
+        role: "funcionario",
+        avatar_emoji: "👷",
+        email: emailLower,
+        active: true
+      };
+      localUsers.push(newProfile);
+      setToLocal("morada_profiles", localUsers);
+      
+      const newSession = { user: newProfile };
+      setSession(newSession);
+      setUser(newProfile);
+      setToLocal("morada_session", newSession);
+      setLoading(false);
+      return { success: true, user: newProfile };
+    }
     try {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -105,6 +177,16 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = useCallback(async () => {
     setError(null);
     setLoading(true);
+    if (!isSupabaseConfigured) {
+      // Mock login de Gerente para testar facilmente
+      const gerente = { id: "gerente-1", name: "Gerente", role: "gerente", avatar_emoji: "👔", email: "gerente@teste.com", active: true };
+      const newSession = { user: gerente };
+      setSession(newSession);
+      setUser(gerente);
+      setToLocal("morada_session", newSession);
+      setLoading(false);
+      return { success: true };
+    }
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -113,7 +195,6 @@ export function AuthProvider({ children }) {
         }
       });
       if (error) throw error;
-      // O redirecionamento acontece automaticamente
     } catch (e) {
       const msg = mapAuthError(e.message);
       setError(msg);
@@ -126,6 +207,36 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     setError(null);
     setLoading(true);
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [
+        { id: "gerente-1", name: "Gerente", role: "gerente", avatar_emoji: "👔", email: "gerente@teste.com", active: true },
+        { id: "func-1", name: "João Silva", role: "funcionario", avatar_emoji: "👷", email: "joao@teste.com", active: true },
+        { id: "func-2", name: "Maria Santos", role: "funcionario", avatar_emoji: "👷", email: "maria@teste.com", active: true },
+      ];
+      const emailLower = email.trim().toLowerCase();
+      let profile = localUsers.find(u => u.email === emailLower);
+      if (!profile) {
+        // Fallback rápido para testes para não travar o usuário
+        if (emailLower.includes("gerente")) {
+          profile = localUsers.find(u => u.role === "gerente");
+        } else {
+          profile = localUsers.find(u => u.role === "funcionario");
+        }
+      }
+      
+      if (!profile) {
+        setError("Usuário não cadastrado.");
+        setLoading(false);
+        return { success: false, error: "Usuário não cadastrado." };
+      }
+
+      const newSession = { user: profile };
+      setSession(newSession);
+      setUser(profile);
+      setToLocal("morada_session", newSession);
+      setLoading(false);
+      return { success: true, user: profile };
+    }
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -144,19 +255,41 @@ export function AuthProvider({ children }) {
 
   // ── LOGOUT ────────────────────────────────────────────────
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
     setSession(null);
     setUsers([]);
+    setToLocal("morada_session", null);
     
-    // Força o redirecionamento imediato e a limpeza do cache do navegador
     window.location.href = "/"; 
   }, []);
 
   // ── CADASTRAR FUNCIONÁRIO (apenas gerente usa) ─────────────
-  // Usa Supabase Admin via API Route para não logar o novo user
   const registerEmployee = useCallback(async ({ name, email, password, role, shift, avatar_emoji }) => {
     setError(null);
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [
+        { id: "gerente-1", name: "Gerente", role: "gerente", avatar_emoji: "👔", email: "gerente@teste.com", active: true },
+        { id: "func-1", name: "João Silva", role: "funcionario", avatar_emoji: "👷", email: "joao@teste.com", active: true },
+        { id: "func-2", name: "Maria Santos", role: "funcionario", avatar_emoji: "👷", email: "maria@teste.com", active: true },
+      ];
+      const id = crypto.randomUUID();
+      const newProfile = {
+        id,
+        name,
+        role,
+        shift,
+        avatar_emoji,
+        email: email.trim().toLowerCase(),
+        active: true
+      };
+      localUsers.push(newProfile);
+      setToLocal("morada_profiles", localUsers);
+      await loadUsers();
+      return { success: true };
+    }
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -165,7 +298,7 @@ export function AuthProvider({ children }) {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Erro ao cadastrar");
-      await loadUsers(); // atualiza lista
+      await loadUsers();
       return { success: true };
     } catch (e) {
       setError(e.message);
@@ -175,6 +308,9 @@ export function AuthProvider({ children }) {
 
   // ── ALTERAR SENHA (usuário atual) ─────────────────────────
   const changePassword = useCallback(async (newPassword) => {
+    if (!isSupabaseConfigured) {
+      return { success: true };
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) return { success: false, error: error.message };
     return { success: true };
@@ -182,6 +318,9 @@ export function AuthProvider({ children }) {
 
   // ── RESETAR SENHA POR EMAIL ────────────────────────────────
   const resetPassword = useCallback(async (email) => {
+    if (!isSupabaseConfigured) {
+      return { success: true };
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/redefinir-senha`,
     });
@@ -192,6 +331,23 @@ export function AuthProvider({ children }) {
   // ── ATUALIZAR PERFIL ───────────────────────────────────────
   const updateProfile = useCallback(async (updates) => {
     if (!user) return { success: false };
+    if (!isSupabaseConfigured) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      const localUsers = getFromLocal("morada_profiles") || [];
+      const idx = localUsers.findIndex(u => u.id === user.id);
+      if (idx !== -1) {
+        localUsers[idx] = { ...localUsers[idx], ...updates };
+        setToLocal("morada_profiles", localUsers);
+      }
+      const currentSession = getFromLocal("morada_session");
+      if (currentSession) {
+        currentSession.user = updatedUser;
+        setToLocal("morada_session", currentSession);
+        setSession(currentSession);
+      }
+      return { success: true };
+    }
     const { data, error } = await supabase
       .from("profiles")
       .update(updates)
@@ -205,17 +361,37 @@ export function AuthProvider({ children }) {
 
   // ── ATUALIZAR QUALQUER USUÁRIO (gerente) ──────────────────
   const updateUser = useCallback(async (userId, updates) => {
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [];
+      const idx = localUsers.findIndex(u => u.id === userId);
+      if (idx !== -1) {
+        localUsers[idx] = { ...localUsers[idx], ...updates };
+        setToLocal("morada_profiles", localUsers);
+      }
+      await loadUsers();
+      return { success: true };
+    }
     const { error } = await supabase
       .from("profiles")
       .update(updates)
       .eq("id", userId);
     if (error) return { success: false, error: error.message };
-    await loadUsers(); // atualiza lista global
+    await loadUsers();
     return { success: true };
   }, [loadUsers]);
 
   // ── DESATIVAR FUNCIONÁRIO (gerente) ───────────────────────
   const deactivateUser = useCallback(async (userId) => {
+    if (!isSupabaseConfigured) {
+      const localUsers = getFromLocal("morada_profiles") || [];
+      const idx = localUsers.findIndex(u => u.id === userId);
+      if (idx !== -1) {
+        localUsers[idx] = { ...localUsers[idx], active: false };
+        setToLocal("morada_profiles", localUsers);
+      }
+      await loadUsers();
+      return { success: true };
+    }
     const { error } = await supabase
       .from("profiles")
       .update({ active: false })
