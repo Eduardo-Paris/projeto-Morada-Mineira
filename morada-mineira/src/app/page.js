@@ -6,7 +6,8 @@ import { useAuth }             from "@/contexts/AuthContext";
 import { COMPANY }             from "@/config/company.config";
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, resetPassword, isAuthenticated, loading, error, setError } = useAuth();
+  // Removido o loginWithGoogle daqui
+  const { login, resetPassword, isAuthenticated, loading, error, setError } = useAuth();
   const router = useRouter();
 
   const [email,      setEmail]      = useState("");
@@ -183,32 +184,6 @@ export default function LoginPage() {
                   <span className="spinner-sm" /> Entrando...
                 </span>
               ) : "Entrar"}
-            </button>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0" }}>
-              <div style={{ flex: 1, height: 1, backgroundColor: "var(--border-color)" }} />
-              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>ou</span>
-              <div style={{ flex: 1, height: 1, backgroundColor: "var(--border-color)" }} />
-            </div>
-
-            <button
-              type="button"
-              className="btn w-full"
-              style={{
-                backgroundColor: "#fff",
-                color: "#333",
-                border: "1px solid #ddd",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                marginBottom: 12
-              }}
-              onClick={loginWithGoogle}
-              disabled={submitting}
-            >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 18, height: 18 }} />
-              Entrar com Google
             </button>
 
             <button
